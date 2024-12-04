@@ -1,8 +1,8 @@
-const { 
-  Document, 
-  Packer, 
-  Paragraph, 
-  TextRun, 
+const {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
   HeadingLevel,
   AlignmentType,
   convertInchesToTwip
@@ -53,7 +53,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ]
         }),
-        
+
         // Contact Information
         new Paragraph({
           alignment: AlignmentType.CENTER,
@@ -75,14 +75,18 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ]
         }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: skills.join(' • '),
-              size: 22
-            })
-          ]
-        }),
+        ...skills.map(skill =>
+          new Paragraph({
+            bullet: { level: 0 },
+            children: [
+              new TextRun({
+                text: skill,
+                size: 22
+              })
+            ]
+          })
+        ),
+        new Paragraph({}), // Extra line after the last bullet point in Skills
 
         // Experience Section
         new Paragraph({
@@ -94,7 +98,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ]
         }),
-        ...experience.map(exp => 
+        ...experience.map(exp =>
           new Paragraph({
             children: [
               new TextRun({
@@ -110,6 +114,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
+        new Paragraph({}), // Extra line after the last experience entry
 
         // Education Section
         new Paragraph({
@@ -121,7 +126,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ]
         }),
-        ...education.map(edu => 
+        ...education.map(edu =>
           new Paragraph({
             children: [
               new TextRun({
@@ -136,6 +141,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
+        new Paragraph({}), // Extra line after the last education entry
 
         // AI-Generated Professional Summary
         new Paragraph({
@@ -154,7 +160,8 @@ exports.createResumeDocument = async (resumeData) => {
               size: 22
             })
           ]
-        })
+        }),
+        new Paragraph({}) // Extra line after the summary
       ]
     }]
   });

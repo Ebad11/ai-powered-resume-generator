@@ -7,8 +7,8 @@ function App() {
     email: '',
     phone: '',
     skills: '',
-    experience: '',
-    education: ''
+    experience: [{ title: '', description: '' }],
+    education: [{ degree: '', institution: '', year: '' }]
   });
 
   const handleSubmit = async (e) => {
@@ -16,9 +16,7 @@ function App() {
     try {
       const payload = {
         ...formData,
-        skills: formData.skills.split(',').map(skill => skill.trim()),
-        experience: JSON.parse(formData.experience || '[]'),
-        education: JSON.parse(formData.education || '[]')
+        skills: formData.skills.split(',').map(skill => skill.trim())
       };
 
       const response = await fetch('http://localhost:5000/api/resume/generate', {
@@ -49,9 +47,35 @@ function App() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleExperienceChange = (index, field, value) => {
+    const updatedExperience = [...formData.experience];
+    updatedExperience[index][field] = value;
+    setFormData(prev => ({ ...prev, experience: updatedExperience }));
+  };
+
+  const handleEducationChange = (index, field, value) => {
+    const updatedEducation = [...formData.education];
+    updatedEducation[index][field] = value;
+    setFormData(prev => ({ ...prev, education: updatedEducation }));
+  };
+
+  const addExperience = () => {
+    setFormData(prev => ({
+      ...prev,
+      experience: [...prev.experience, { title: '', description: '' }]
+    }));
+  };
+
+  const addEducation = () => {
+    setFormData(prev => ({
+      ...prev,
+      education: [...prev.education, { degree: '', institution: '', year: '' }]
+    }));
+  };
+
   return (
     <div className="App">
-      <h1>Ai Powered Resume Generator</h1>
+      <h1>AI Powered Resume Generator</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -80,16 +104,55 @@ function App() {
           onChange={handleChange}
           required
         />
-        <textarea
-          name="experience"
-          placeholder="Experience (JSON)"
-          onChange={handleChange}
-        />
-        <textarea
-          name="education"
-          placeholder="Education (JSON)"
-          onChange={handleChange}
-        />
+
+        <h2>Experience</h2>
+        {formData.experience.map((exp, index) => (
+          <div key={index}>
+            <input
+              type="text"
+              placeholder="Title"
+              value={exp.title}
+              onChange={(e) => handleExperienceChange(index, 'title', e.target.value)}
+              required
+            />
+            <textarea
+              placeholder="Description"
+              value={exp.description}
+              onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+              required
+            />
+          </div>
+        ))}
+        <button type="button" onClick={addExperience}>Add Experience</button>
+
+        <h2>Education</h2>
+        {formData.education.map((edu, index) => (
+          <div key={index}>
+            <input
+              type="text"
+              placeholder="Degree"
+              value={edu.degree}
+              onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Institution"
+              value={edu.institution}
+              onChange={(e) => handleEducationChange(index, 'institution', e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Year"
+              value={edu.year}
+              onChange={(e) => handleEducationChange(index, 'year', e.target.value)}
+              required
+            />
+          </div>
+        ))}
+        <button type="button" onClick={addEducation}>Add Education</button>
+
         <button type="submit">Generate Resume</button>
       </form>
     </div>

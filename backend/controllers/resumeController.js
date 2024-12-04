@@ -17,17 +17,13 @@ exports.generateResume = async (req, res) => {
     } = req.body;
 
     // Construct prompt for resume generation
-    const prompt = `Create a professional resume for ${name} with the following details:
-    - Contact: ${email}, ${phone}
+    const prompt = `Create a professional summary for ${name} with the following details:
     - Skills: ${skills.join(', ')}
     - Professional Experience: ${JSON.stringify(experience)}
     - Education: ${JSON.stringify(education)}
 
     Guidelines:
-    1. Format the resume in a clear, professional manner
-    2. Highlight key achievements and skills
-    3. Use concise, impactful language
-    4. Organize content in standard resume format`;
+    Give the output in a paragraph format in a first person pov`
 
     // Generate resume text using Gemini
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
