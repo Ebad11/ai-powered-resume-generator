@@ -51,7 +51,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Resume Generator</h1>
+      <h1>Ai Powered Resume Generator</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
