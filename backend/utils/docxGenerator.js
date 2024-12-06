@@ -73,7 +73,10 @@ exports.createResumeDocument = async (resumeData) => {
               text: 'Skills',
               bold: true
             })
-          ]
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
         }),
         ...skills.map(skill =>
           new Paragraph({
@@ -96,18 +99,21 @@ exports.createResumeDocument = async (resumeData) => {
               text: 'Professional Experience',
               bold: true
             })
-          ]
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
         }),
         ...experience.map(exp =>
           new Paragraph({
+            bullet: { level: 0 },
             children: [
               new TextRun({
-                text: `${exp.company} - ${exp.role}`,
-                bold: true,
+                text: `${exp.title} | ${exp.description} | `,
                 size: 24
               }),
               new TextRun({
-                text: `\n${exp.duration || 'Current'}`,
+                text: `${exp.duration || 'Current'}`,
                 italics: true,
                 size: 22
               })
@@ -124,18 +130,26 @@ exports.createResumeDocument = async (resumeData) => {
               text: 'Education',
               bold: true
             })
-          ]
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
         }),
         ...education.map(edu =>
           new Paragraph({
+            bullet: { level: 0 },
             children: [
               new TextRun({
-                text: `${edu.institution}`,
-                bold: true,
+                text: `${edu.institution} | `,
                 size: 24
               }),
               new TextRun({
-                text: `\n${edu.degree}, ${edu.graduationYear}`,
+                text: `${edu.degree} | `,
+                size: 22
+              }),
+              new TextRun({
+                text: `${edu.duration || 'Current'}`,
+                italics: true,
                 size: 22
               })
             ]
@@ -151,7 +165,10 @@ exports.createResumeDocument = async (resumeData) => {
               text: 'Professional Summary',
               bold: true
             })
-          ]
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
         }),
         new Paragraph({
           children: [

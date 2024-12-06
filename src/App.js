@@ -7,8 +7,8 @@ function App() {
     email: '',
     phone: '',
     skills: '',
-    experience: [{ title: '', description: '' }],
-    education: [{ degree: '', institution: '', year: '' }]
+    experience: [{ title: '', description: '', duration: '' }],
+    education: [{ degree: '', institution: '', year: '', duration: '' }]
   });
 
   const handleSubmit = async (e) => {
@@ -16,7 +16,9 @@ function App() {
     try {
       const payload = {
         ...formData,
-        skills: formData.skills.split(',').map(skill => skill.trim())
+        skills: formData.skills.split(',').map(skill => skill.trim()),
+        experience: formData.experience.filter(exp => exp.title && exp.description && exp.duration),
+        education: formData.education.filter(edu => edu.degree && edu.institution && edu.duration)
       };
 
       const response = await fetch('http://localhost:5000/api/resume/generate', {
@@ -52,7 +54,7 @@ function App() {
     updatedExperience[index][field] = value;
     setFormData(prev => ({ ...prev, experience: updatedExperience }));
   };
-
+  
   const handleEducationChange = (index, field, value) => {
     const updatedEducation = [...formData.education];
     updatedEducation[index][field] = value;
@@ -116,9 +118,16 @@ function App() {
               required
             />
             <textarea
-              placeholder="Description"
+              placeholder="Company"
               value={exp.description}
               onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Duration (e.g., 2020-2022 or 2020-current)"
+              value={exp.duration}
+              onChange={(e) => handleExperienceChange(index, 'duration', e.target.value)}
               required
             />
           </div>
@@ -149,9 +158,17 @@ function App() {
               onChange={(e) => handleEducationChange(index, 'year', e.target.value)}
               required
             />
+            <input
+              type="text"
+              placeholder="Duration (e.g., 2018-2022 or 2018-current)"
+              value={edu.duration}
+              onChange={(e) => handleEducationChange(index, 'duration', e.target.value)}
+              required
+            />
           </div>
         ))}
         <button type="button" onClick={addEducation}>Add Education</button>
+
 
         <button type="submit">Generate Resume</button>
       </form>
