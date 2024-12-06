@@ -1,0 +1,32 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+  }
+  
+  .content-wrapper {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+  
+  .main-content {
+    flex: 1;
+
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 0;
+      position: fixed;
+      left: -250px;
+      transition: 0.3s; 
+    }
+  }
