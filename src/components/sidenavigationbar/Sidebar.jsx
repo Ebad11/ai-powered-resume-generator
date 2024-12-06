@@ -9,7 +9,7 @@ import {
   Globe,
   Star,
   BookOpen,
-  Award, // Replace Laptop with Award for a more suitable icon
+  Award,
 } from 'lucide-react';
 
 const Sidebar = ({ onSectionChange, activeSection }) => {
@@ -21,7 +21,7 @@ const sections = [
   { id: 5, title: 'Skills', Icon: Globe },
   { id: 6, title: 'Projects', Icon: Star },
   { id: 7, title: 'Certifications', Icon: BookOpen },
-  { id: 8, title: 'Awards & Honors', Icon: Award }, // Using Award icon for better representation
+  { id: 8, title: 'Awards & Honors', Icon: Award },
 ];
 
   const handleSectionClick = (title) => {
