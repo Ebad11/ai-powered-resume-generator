@@ -16,6 +16,8 @@ exports.createResumeDocument = async (resumeData) => {
     skills,
     experience,
     education,
+    projects,
+    achievements,
     generatedText
   } = resumeData;
 
@@ -156,6 +158,67 @@ exports.createResumeDocument = async (resumeData) => {
           })
         ),
         new Paragraph({}), // Extra line after the last education entry
+
+        // Projects Section
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          children: [
+            new TextRun({
+              text: 'Projects',
+              bold: true
+            })
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
+        }),
+        ...projects.map(proj =>
+          new Paragraph({
+            bullet: { level: 0 },
+            children: [
+              new TextRun({
+                text: `${proj.title}: `,
+                bold: true,
+                size: 24
+              }),
+              new TextRun({
+                text: proj.description,
+                size: 22
+              })
+            ]
+          })
+        ),
+        new Paragraph({}), // Extra line after the last project entry
+
+        // Achievements Section
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          children: [
+            new TextRun({
+              text: 'Achievements',
+              bold: true
+            })
+          ],
+          spacing: {
+            after: 100 // Adds a small space after the heading
+          }
+        }),
+        ...achievements.map(ach =>
+          new Paragraph({
+            bullet: { level: 0 },
+            children: [
+              new TextRun({
+                text: `${ach.title}: `,
+                size: 24
+              }),
+              new TextRun({
+                text: ach.description,
+                size: 22
+              })
+            ]
+          })
+        ),
+        new Paragraph({}), // Extra line after the last achievement entry
 
         // AI-Generated Professional Summary
         new Paragraph({
