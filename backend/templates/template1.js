@@ -77,7 +77,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         ...skills.map(skill =>
@@ -91,7 +91,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
-        new Paragraph({}), // Extra line after the last bullet point in Skills
+        new Paragraph({}),
 
         // Experience Section
         new Paragraph({
@@ -103,7 +103,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         ...experience.map(exp =>
@@ -111,8 +111,13 @@ exports.createResumeDocument = async (resumeData) => {
             bullet: { level: 0 },
             children: [
               new TextRun({
-                text: `${exp.title} | ${exp.description} | `,
+                text: `${exp.title} | `,
+                bold: true, // Title of each experience is bold
                 size: 24
+              }),
+              new TextRun({
+                text: `${exp.description} | `,
+                size: 22
               }),
               new TextRun({
                 text: `${exp.duration || 'Current'}`,
@@ -122,7 +127,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
-        new Paragraph({}), // Extra line after the last experience entry
+        new Paragraph({}),
 
         // Education Section
         new Paragraph({
@@ -134,7 +139,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         ...education.map(edu =>
@@ -157,7 +162,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
-        new Paragraph({}), // Extra line after the last education entry
+        new Paragraph({}),
 
         // Projects Section
         new Paragraph({
@@ -169,7 +174,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         ...projects.map(proj =>
@@ -188,7 +193,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
-        new Paragraph({}), // Extra line after the last project entry
+        new Paragraph({}),
 
         // Achievements Section
         new Paragraph({
@@ -200,7 +205,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         ...achievements.map(ach =>
@@ -209,6 +214,7 @@ exports.createResumeDocument = async (resumeData) => {
             children: [
               new TextRun({
                 text: `${ach.title}: `,
+                bold: true, // Title of each achievement is bold
                 size: 24
               }),
               new TextRun({
@@ -218,7 +224,7 @@ exports.createResumeDocument = async (resumeData) => {
             ]
           })
         ),
-        new Paragraph({}), // Extra line after the last achievement entry
+        new Paragraph({}),
 
         // AI-Generated Professional Summary
         new Paragraph({
@@ -230,7 +236,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ],
           spacing: {
-            after: 100 // Adds a small space after the heading
+            after: 100
           }
         }),
         new Paragraph({
@@ -241,7 +247,7 @@ exports.createResumeDocument = async (resumeData) => {
             })
           ]
         }),
-        new Paragraph({}) // Extra line after the summary
+        new Paragraph({})
       ]
     }]
   });

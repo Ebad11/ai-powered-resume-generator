@@ -1,7 +1,7 @@
 const docxTemplates = {
   template1: require('../templates/template1'),
-  // template2: require('../templates/template2'),
-  // template3: require('../templates/template3')
+  template2: require('../templates/template2'),
+  template3: require('../templates/template3')
 };
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
