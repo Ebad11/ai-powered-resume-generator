@@ -110,13 +110,13 @@ function App() {
         <h2>Select Template</h2>
         <div onChange={handleChange}>
           <label>
-            <input type="radio" name="template" value="template1" defaultChecked /> Template 1
+            <input type="radio" name="template" value="template1" defaultChecked /> Clean Professional
           </label>
           <label>
-            <input type="radio" name="template" value="template2" /> Template 2
+            <input type="radio" name="template" value="template2" /> Structured Classic
           </label>
           <label>
-            <input type="radio" name="template" value="template3" /> Template 3
+            <input type="radio" name="template" value="template3" /> Modern Elegance
           </label>
         </div>
 
