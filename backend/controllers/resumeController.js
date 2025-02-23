@@ -69,10 +69,21 @@ exports.generateResume = async (req, res) => {
       generatedText: professionalSummary
     });
 
-    // Send the Word document as a response
-    res.contentType('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    // Create a Base64 string of the document
+    const base64Doc = wordBuffer;
+    // .toString('base64')
+
+    // Send both the document and the base64 string
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename=${name.replace(/\s+/g, '_')}_resume.docx`);
-    res.send(wordBuffer);
+
+    res.json({
+      document: base64Doc,
+      fileName: `${name.replace(/\s+/g, '_')}_resume.docx`
+    });
+    
+
+    // res.send(wordBuffer);
   } catch (error) {
     console.error('Error generating resume:', error);
     res.status(500).json({ error: 'Failed to generate resume', details: error.message });

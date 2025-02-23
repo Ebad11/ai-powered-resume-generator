@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { ArrowRight, Sparkles, Plus, Building, GraduationCap, BookOpen, Calendar, Award, Trophy } from 'lucide-react';
+import { ResumeContext } from '../../utils/ResumeContext';
 import './style.css';
 
 const Toast = ({ message }) => (
@@ -9,7 +10,7 @@ const Toast = ({ message }) => (
 
 const Education = () => {
   const navigate = useNavigate();
-  const [educations, setEducations] = useState([]);
+  const { resume, setResume } = useContext(ResumeContext);
   const [showToast, setShowToast] = useState(false);
   const [education, setEducation] = useState({
     instituteName: '',
@@ -32,7 +33,14 @@ const Education = () => {
   };
 
   const handleAddMore = () => {
-    setEducations(prev => [...prev, { ...education }]);
+    setResume(prevResume => ({
+      ...prevResume,
+      education: [
+        ...(prevResume.educationDetails || []),
+        { ...education }
+      ]
+    }));
+
     setEducation({
       instituteName: '',
       degree: '',
@@ -42,6 +50,7 @@ const Education = () => {
       grade: '',
       achievements: ''
     });
+
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -49,87 +58,104 @@ const Education = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isFormFilled()) {
-      const allEducation = [...educations, education];
-      setEducations(allEducation);
-      console.log("All Education:", allEducation);
+      setResume(prevResume => ({
+        ...prevResume,
+        education: [
+          ...(prevResume.educationDetails || []),
+          { ...education }
+        ]
+      }));
     }
-    navigate('/next-route');
+    navigate('/screen/skills');
   };
 
   return (
     <div className="personal-info-container">
-      {showToast && <Toast message="Education details saved! You can add more." />}
+      <div className="form-wrapper">
+        {showToast && <Toast message="Education details saved! You can add more." />}
 
-      <form onSubmit={handleSubmit}>
-        <section className="info-section">
-          <div className="title-container">
-            <h2 className="title">Education Details</h2>
-            <span className="experience-count">
-              {educations.length} education details added
-            </span>
-          </div>
+        <form onSubmit={handleSubmit}>
+          <h2 className="section-title">Education Details_</h2>
+          <span className="experience-count">
+            {(resume.educationDetails?.length || 0)} education details added
+          </span>
 
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="instituteName">Institute Name</label>
+              <label>
+                <Building size={16} /> Institute_Name
+              </label>
               <input
                 type="text"
-                id="instituteName"
                 name="instituteName"
                 value={education.instituteName}
                 onChange={handleChange}
+                placeholder="Enter institute name..."
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="degree">Degree</label>
+              <label>
+                <GraduationCap size={16} /> Degree_
+              </label>
               <input
                 type="text"
-                id="degree"
                 name="degree"
                 value={education.degree}
                 onChange={handleChange}
+                placeholder="Enter degree..."
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="field">Field of Study</label>
+              <label>
+                <BookOpen size={16} /> Field_Of_Study
+              </label>
               <input
                 type="text"
-                id="field"
                 name="field"
                 value={education.field}
                 onChange={handleChange}
+                placeholder="Enter field of study..."
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="grade">Grade/CGPA/Percentage</label>
+              <label>
+                <Award size={16} /> Grade/CGPA
+              </label>
               <input
                 type="text"
-                id="grade"
                 name="grade"
                 value={education.grade}
                 onChange={handleChange}
+                placeholder="Enter grade/CGPA..."
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="startDate">Start Date</label>
+              <label>
+                <Calendar size={16} /> Start_Date
+              </label>
               <input
                 type="date"
-                id="startDate"
                 name="startDate"
                 value={education.startDate}
                 onChange={handleChange}
                 required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="endDate">End Date</label>
+              <label>
+                <Calendar size={16} /> End_Date
+              </label>
               <input
                 type="date"
-                id="endDate"
                 name="endDate"
                 value={education.endDate}
                 onChange={handleChange}
@@ -138,37 +164,38 @@ const Education = () => {
             </div>
           </div>
 
-          <div className="form-group" style={{ marginTop: '20px' }}>
-            <h2 className="title">Achievements</h2>
+          <div className="form-group">
+            <label>
+              <Trophy size={16} /> Achievements_
+            </label>
             <textarea
               name="achievements"
               value={education.achievements}
               onChange={handleChange}
               className="summary-textarea"
-              rows={8}
               placeholder="List your academic achievements, awards, or notable projects..."
               required
             />
           </div>
-        </section>
 
-        <div className="button-group">
-          <button 
-            type="button" 
-            className="add-more-button"
-            disabled={!isFormFilled()}
-            onClick={handleAddMore}
-          >
-            Add More <Plus size={20} />
-          </button>
-          <button type="button" className="generate-button">
-            Generate <Sparkles size={20} />
-          </button>
-          <button type="submit" className="next2-button">
-            Next <ArrowRight size={20} />
-          </button>
-        </div>
-      </form>
+          <div className="button-group">
+            <button 
+              type="button" 
+              className="add-more-button"
+              disabled={!isFormFilled()}
+              onClick={handleAddMore}
+            >
+              Add More <Plus size={20} />
+            </button>
+            <button type="button" className="generate-button">
+              Generate <Sparkles size={20} />
+            </button>
+            <button type="submit" className="next2-button">
+              Next <ArrowRight size={20} />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,106 +1,120 @@
-// components/PersonalInfo.js
-import React, { useState } from 'react';
-import './style.css';
-import { ArrowRight } from 'lucide-react';
+import React, { useContext } from 'react';
+import { ArrowRight, User, Mail, Phone, Briefcase, LinkedinIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { ResumeContext } from '../../utils/ResumeContext';
+import './style.css';
 
 const PersonalInfo = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        phone: '',
-        email: '',
-        title: '',
-        linkedin: '',
-    });
+    const { resume, setResume } = useContext(ResumeContext);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
+        setResume((prevResume) => ({
+            ...prevResume,
+            personalInfo: {
+                ...prevResume.personalInfo,
+                [name]: value,
+            },
         }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        navigate('/screen/summary');
+        navigate('/screen/work-experience');
     };
 
     return (
         <div className="personal-info-container">
-            <form onSubmit={handleSubmit}>
-                <section className="info-section">
-                    <h2 className="title">Personal Info.</h2>
+            <div className="form-wrapper">
+                <form>
+                    <h2 className="section-title">Personal Info_</h2>
+                    
                     <div className="form-grid">
                         <div className="form-group">
-                            <label>First Name</label>
+                            <label>
+                                <User size={16} /> First_Name
+                            </label>
                             <input
                                 type="text"
                                 name="firstName"
-                                value={formData.firstName}
+                                value={resume.personalInfo?.firstName || ''}
                                 onChange={handleChange}
+                                placeholder="Enter first name..."
                             />
                         </div>
+
                         <div className="form-group">
-                            <label>Last Name</label>
+                            <label>
+                                <User size={16} /> Last_Name
+                            </label>
                             <input
                                 type="text"
                                 name="lastName"
-                                value={formData.lastName}
+                                value={resume.personalInfo?.lastName || ''}
                                 onChange={handleChange}
+                                placeholder="Enter last name..."
                             />
                         </div>
+
                         <div className="form-group">
-                            <label>Phone no.</label>
+                            <label>
+                                <Phone size={16} /> Phone_Number
+                            </label>
                             <input
-                                type='tel'
+                                type="tel"
                                 name="phone"
-                                value={formData.phone}
+                                value={resume.personalInfo?.phone || ''}
                                 onChange={handleChange}
+                                placeholder="Enter phone number..."
                             />
                         </div>
+
                         <div className="form-group">
-                            <label>Email id</label>
+                            <label>
+                                <Mail size={16} /> Email_Address
+                            </label>
                             <input
                                 type="email"
                                 name="email"
-                                value={formData.email}
+                                value={resume.personalInfo?.email || ''}
                                 onChange={handleChange}
+                                placeholder="Enter email..."
                             />
                         </div>
-                    </div>
-                </section>
 
-                <section className="info-section">
-                    <div className="form-grid">
                         <div className="form-group">
-                            <label>Title</label>
+                            <label>
+                                <Briefcase size={16} /> Title_Position
+                            </label>
                             <input
                                 type="text"
                                 name="title"
-                                value={formData.title}
+                                value={resume.personalInfo?.title || ''}
                                 onChange={handleChange}
+                                placeholder="Enter professional title..."
                             />
                         </div>
+
                         <div className="form-group">
-                            <label>LinkedIn</label>
+                            <label>
+                                <LinkedinIcon size={16} /> LinkedIn_Profile
+                            </label>
                             <input
                                 type="text"
                                 name="linkedin"
-                                value={formData.linkedin}
+                                value={resume.personalInfo?.linkedin || ''}
                                 onChange={handleChange}
+                                placeholder="Enter LinkedIn URL..."
                             />
                         </div>
                     </div>
-                </section>
-                <button type="submit" className="next-button">
-                    Next <ArrowRight size={20} />
-                </button>
-            </form>
+
+                    <button onClick={handleSubmit} className="next-button">
+                        Next <ArrowRight size={20} />
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

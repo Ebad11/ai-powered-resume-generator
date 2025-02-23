@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { ArrowRight, Building, MapPin, Calendar, FileText, Plus, Briefcase } from 'lucide-react';
+import { ResumeContext } from '../../utils/ResumeContext';
 import './style.css';
 
 const Toast = ({ message }) => (
@@ -9,7 +10,7 @@ const Toast = ({ message }) => (
 
 const WorkExperience = () => {
   const navigate = useNavigate();
-  const [experiences, setExperiences] = useState([]);
+  const { resume, setResume } = useContext(ResumeContext);
   const [showToast, setShowToast] = useState(false);
   const [workExperience, setWorkExperience] = useState({
     companyName: '',
@@ -19,7 +20,6 @@ const WorkExperience = () => {
     endDate: '',
     information: ''
   });
-
 
   const isFormFilled = () => Object.values(workExperience).every(value => value.trim() !== '');
 
@@ -32,14 +32,26 @@ const WorkExperience = () => {
   };
 
   const handleAddMore = () => {
-    setExperiences(prev => [...prev, { ...workExperience }]);
+    // Update the resume context with the new experience
+    setResume(prevResume => ({
+      ...prevResume,
+      workExperiences: [
+        ...(prevResume.workExperiences || []),
+        { ...workExperience }
+      ]
+    }));
+
+    // Reset the form
     setWorkExperience({
       companyName: '',
       postName: '',
       location: '',
-      duration: '',
+      startDate: '',
+      endDate: '',
       information: ''
     });
+
+    // Show toast
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -47,115 +59,117 @@ const WorkExperience = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isFormFilled()) {
-      const allExperiences = [...experiences, workExperience];
-      setExperiences(allExperiences);
-      console.log("All Experiences:", allExperiences);
+      // Add the current experience to the resume context before navigating
+      setResume(prevResume => ({
+        ...prevResume,
+        workExperiences: [
+          ...(prevResume.workExperiences || []),
+          { ...workExperience }
+        ]
+      }));
+      console.log("Updated Resume:", resume);
     }
-    navigate('/next-route');
+    navigate('/screen/education');
   };
 
   return (
     <div className="personal-info-container">
       {showToast && <Toast message="Experience saved! You can add more." />}
 
-      <form onSubmit={handleSubmit}>
-        <section className="info-section">
-          <div className="title-container">
-            <h2 className="title">Experience Details</h2>
-            <span className="experience-count">
-              {experiences.length} experiences added
-            </span>
-          </div>
-
+      <div className="form-wrapper">
+        <form onSubmit={handleSubmit}>
+          <h2 className="section-title">Work Experience_</h2>
+          <span className="experience-count">
+            {(resume.workExperiences?.length || 0)} experiences added
+          </span>
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="companyName">Company Name</label>
+              <label>
+                <Building size={16} /> Company_Name
+              </label>
               <input
                 type="text"
-                id="companyName"
                 name="companyName"
                 value={workExperience.companyName}
                 onChange={handleChange}
-                required
+                placeholder="Enter company name..."
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="postName">Post Name</label>
+              <label>
+                <Briefcase size={16} /> Post_Name
+              </label>
               <input
                 type="text"
-                id="postName"
                 name="postName"
                 value={workExperience.postName}
                 onChange={handleChange}
-                required
+                placeholder="Enter post name..."
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="location">Location</label>
+              <label>
+                <MapPin size={16} /> Location
+              </label>
               <input
                 type="text"
-                id="location"
                 name="location"
                 value={workExperience.location}
                 onChange={handleChange}
-                required
+                placeholder="Enter location..."
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="startDate">Start Date</label>
+              <label>
+                <Calendar size={16} /> Start_Date
+              </label>
               <input
                 type="date"
-                id="startDate"
                 name="startDate"
                 value={workExperience.startDate}
                 onChange={handleChange}
-                required
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="endDate">End Date</label>
+              <label>
+                <Calendar size={16} /> End_Date
+              </label>
               <input
                 type="date"
-                id="endDate"
                 name="endDate"
                 value={workExperience.endDate}
                 onChange={handleChange}
-                required
               />
             </div>
           </div>
 
-          <div className="form-group" style={{ marginTop: '20px' }}>
-            <h2 className="title">Description</h2>
+          <div className="form-group full-width">
+            <label>
+              <FileText size={16} /> Description_
+            </label>
             <textarea
               name="information"
               value={workExperience.information}
               onChange={handleChange}
-              className="summary-textarea"
-              rows={8}
               placeholder="Describe your role and responsibilities..."
-              required
+              className="description-input"
             />
           </div>
-        </section>
 
-        <div className="button-group">
-          <button
-            type="button"
-            className="add-more-button"
-            disabled={!isFormFilled()}
-            onClick={handleAddMore}
-          >
-            Add More <Plus size={20} />
-          </button>
-          <button type="button" className="generate-button">
-            Generate <Sparkles size={20} />
-          </button>
-          <button type="submit" className="next2-button">
-            Next <ArrowRight size={20} />
-          </button>
-        </div>
-      </form>
+          <div className="button-group">
+            <button type="button" className="add-button" onClick={handleAddMore}>
+              Add More <Plus size={20} />
+            </button>
+            <button type="submit" className="next-button">
+              Next <ArrowRight size={20} />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,61 +1,55 @@
-// Sidebar.js
-import React from 'react';
+import React, { useState } from 'react';
 import './style.css';
-import {
-  User,
-  FileText,
-  Briefcase,
-  GraduationCap,
-  Globe,
-  Star,
-  BookOpen,
-  Award,
-} from 'lucide-react';
+import { User, Briefcase, GraduationCap, Code, Star, Award, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Sidebar = ({ onSectionChange, activeSection }) => {
-const sections = [
-  { id: 1, title: 'Personal Info', Icon: User },
-  { id: 2, title: 'Summary', Icon: FileText },
-  { id: 3, title: 'Work Experience', Icon: Briefcase },
-  { id: 4, title: 'Education', Icon: GraduationCap },
-  { id: 5, title: 'Skills', Icon: Globe },
-  { id: 6, title: 'Projects', Icon: Star },
-  { id: 7, title: 'Certifications', Icon: BookOpen },
-  { id: 8, title: 'Awards & Honors', Icon: Award },
-];
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    
+    const sections = [
+        { title: 'Template Selection', icon: <FileText size={20} /> },
+        { title: 'Personal Info', icon: <User size={20} /> },
+        { title: 'Work Experience', icon: <Briefcase size={20} /> },
+        { title: 'Education', icon: <GraduationCap size={20} /> },
+        { title: 'Skills', icon: <Code size={20} /> },
+        { title: 'Projects', icon: <Star size={20} /> },
+        { title: 'Awards Honors', icon: <Award size={20} /> }
+    ];
 
-  const handleSectionClick = (title) => {
-    onSectionChange(title);
-  };
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
 
-  return (
-    <div className="fill-section-container">
-      <h2 className="fill-section-title">Fill Section</h2>
-      <p className="fill-section-subtitle">Select the section</p>
-      
-      <div className="sections-grid">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            className={`section-button ${activeSection === section.title ? 'active' : ''}`}
-            onClick={() => handleSectionClick(section.title)}
-          >
-            <span className="section-icon">
-              <section.Icon size={24} color={activeSection === section.title ? '#5C3CDB' : '#000000'} />
-            </span>
-            <span className="section-title" style={{ color: activeSection === section.title ? '#5C3CDB' : '#000000' }}>{section.title}</span>
-          </button>
-        ))}
-      </div>
-
-      <button 
-        className="text-section-button"
-        onClick={() => handleSectionClick('Text Section')}
-      >
-        Text Section
-      </button>
-    </div>
-  );
-};
+    return (
+        <div className={`cyber-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+            <button className="collapse-btn" onClick={toggleSidebar}>
+                {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
+            
+            <div className="cyber-sidebar-header">
+                <h2 className="cyber-sidebar-title">FILL SECTION</h2>
+                <p className="cyber-sidebar-subtitle">Select the section to proceed</p>
+            </div>
+            
+            <div className="cyber-sidebar-content">
+                <div className="cyber-sections-grid">
+                    {sections.map((section) => (
+                        <button
+                            key={section.title}
+                            className={`cyber-section-btn ${
+                                activeSection === section.title ? 'active' : ''
+                            }`}
+                            onClick={() => onSectionChange(section.title)}
+                        >
+                            <span className="cyber-section-icon">{section.icon}</span>
+                            <span className="cyber-section-text">
+                                {section.title.toUpperCase()}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default Sidebar;
