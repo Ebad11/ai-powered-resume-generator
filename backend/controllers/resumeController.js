@@ -21,13 +21,32 @@ exports.generateResume = async (req, res) => {
       if (!data || !data.length) return data;
 
       const sectionPrompt = `
-        Enhance the language and correct any grammatical errors in the following ${sectionName} details:
+        Enhance the language and correct any grammatical errors in the following ${sectionName} details.
         ${JSON.stringify(data, null, 2)}
-        Provide the output as an array of the same structure with improved descriptions and don't use * before and after the output.`;
+        Important: Return ONLY a valid JSON array with the same structure. Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const result = await model.generateContent(sectionPrompt);
-      return JSON.parse(result.response.text()); // Assuming the response is valid JSON
+      const responseText = result.response.text().trim();
+      
+      // Clean up the response to ensure it's valid JSON
+      let cleanedResponse = responseText;
+      // Remove markdown code blocks if present
+      if (responseText.startsWith('```json') || responseText.startsWith('```')) {
+        cleanedResponse = responseText
+          .replace(/^```json\n/, '')
+          .replace(/^```\n/, '')
+          .replace(/\n```$/, '');
+      }
+      
+      try {
+        return JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.log('Raw response:', responseText);
+        // If parsing fails, return the original data
+        return data;
+      }
     };
 
     // Enhance each section
@@ -40,20 +59,21 @@ exports.generateResume = async (req, res) => {
     // Construct the Gemini prompt for the professional summary
     const summaryPrompt = `
       Create a professional summary for ${name} with the following details:
-      - Skills: ${enhancedSkills.join(', ')}
+      - Skills: ${Array.isArray(enhancedSkills) ? enhancedSkills.join(', ') : 'N/A'}
       - Professional Experience: ${JSON.stringify(enhancedExperience)}
       - Education: ${JSON.stringify(enhancedEducation)}
       - Projects: ${JSON.stringify(enhancedProjects)}
       - Achievements: ${JSON.stringify(enhancedAchievements)}
-      - Use these keywords in the professional summary: ${keywords.join(', ')}
+      - Use these keywords in the professional summary: ${Array.isArray(keywords) ? keywords.join(', ') : 'N/A'}
 
       Guidelines:
-      - Provide the output in a paragraph format in first-person POV.`;
+      - Provide the output in a paragraph format in first-person POV.
+      - Return ONLY the paragraph text without any additional formatting.`;
 
     // Generate professional summary
-    const summaryModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const summaryModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const summaryResult = await summaryModel.generateContent(summaryPrompt);
-    const professionalSummary = summaryResult.response.text();
+    const professionalSummary = summaryResult.response.text().trim();
 
     // Generate Word document using the selected template
     const createResumeDocument = docxTemplates[template].createResumeDocument;
@@ -69,21 +89,14 @@ exports.generateResume = async (req, res) => {
       generatedText: professionalSummary
     });
 
-    // Create a Base64 string of the document
-    const base64Doc = wordBuffer;
-    // .toString('base64')
-
     // Send both the document and the base64 string
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename=${name.replace(/\s+/g, '_')}_resume.docx`);
 
     res.json({
-      document: base64Doc,
+      document: wordBuffer.toString('base64'),
       fileName: `${name.replace(/\s+/g, '_')}_resume.docx`
     });
-    
-
-    // res.send(wordBuffer);
   } catch (error) {
     console.error('Error generating resume:', error);
     res.status(500).json({ error: 'Failed to generate resume', details: error.message });
