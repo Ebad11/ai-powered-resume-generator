@@ -9,7 +9,6 @@ const User = require('../models/User');
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Existing generateResume function
 exports.generateResume = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -63,26 +62,32 @@ exports.generateResume = async (req, res) => {
           const sectionPrompt = `
             Enhance the language and correct any grammatical errors in the following ${sectionName} details.
             ${JSON.stringify(data, null, 2)}
-            Important: Return ONLY a valid JSON array with the same structure. Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
+            Important: Return ONLY a valid JSON array with the same structure (e.g., ["skill1", "skill2"] for skills, or [{"title": "", "description": "", "duration": ""}] for experience). 
+            Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array. 
+            Ensure the output is valid JSON.`;
 
           const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
           const result = await model.generateContent(sectionPrompt);
-          const responseText = result.response.text().trim();
-          
-          let cleanedResponse = responseText;
-          if (responseText.startsWith('```json') || responseText.startsWith('```')) {
-            cleanedResponse = responseText
+          const responseText = result.response.text();
+
+          // Clean and parse the response
+          let cleanedResponse = responseText.trim();
+          if (cleanedResponse.startsWith('```json') || cleanedResponse.startsWith('```')) {
+            cleanedResponse = cleanedResponse
               .replace(/^```json\n/, '')
               .replace(/^```\n/, '')
               .replace(/\n```$/, '');
           }
-          
+          cleanedResponse = cleanedResponse.trim();
+
+          console.log(`Cleaned ${sectionName} response:`, cleanedResponse);
+
           try {
             return JSON.parse(cleanedResponse);
           } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            console.log('Raw response:', responseText);
-            return data;
+            console.error(`JSON parse error for ${sectionName}:`, parseError);
+            console.log(`Raw ${sectionName} response:`, responseText);
+            return data; // Fallback to original data if parsing fails
           }
         };
 
@@ -147,7 +152,6 @@ exports.generateResume = async (req, res) => {
   }
 };
 
-// New function to tailor the resume for a specific position/field
 exports.tailorResume = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -181,15 +185,44 @@ exports.tailorResume = async (req, res) => {
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+    // Function to clean and parse Gemini API response
+    const cleanAndParseResponse = (responseText, sectionName, originalData) => {
+      let cleanedResponse = responseText.trim();
+
+      // Remove Markdown code blocks if present
+      if (cleanedResponse.startsWith('```json') || cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse
+          .replace(/^```json\n/, '')
+          .replace(/^```\n/, '')
+          .replace(/\n```$/, '');
+      }
+
+      // Remove any leading/trailing whitespace
+      cleanedResponse = cleanedResponse.trim();
+
+      // Log the cleaned response for debugging
+      console.log(`Cleaned ${sectionName} response:`, cleanedResponse);
+
+      try {
+        return JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        console.error(`JSON parse error for ${sectionName}:`, parseError);
+        console.log(`Raw ${sectionName} response:`, responseText);
+        return originalData; // Fallback to original data if parsing fails
+      }
+    };
+
     // Tailor skills: Highlight relevant skills and remove irrelevant ones
     const skillsPrompt = `
       Given the following skills: ${JSON.stringify(skills)},
       tailor the list for a ${position} role in the ${field} field.
       Highlight skills relevant to this position and field, and remove irrelevant ones.
-      Return ONLY a valid JSON array of the tailored skills. Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
+      Return ONLY a valid JSON array of the tailored skills (e.g., ["skill1", "skill2"]). 
+      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array. 
+      Ensure the output is valid JSON.`;
 
     const skillsResult = await model.generateContent(skillsPrompt);
-    const tailoredSkills = JSON.parse(skillsResult.response.text().trim());
+    const tailoredSkills = cleanAndParseResponse(skillsResult.response.text(), 'skills', skills);
 
     // Tailor experience: Rephrase to emphasize relevant experience
     const experiencePrompt = `
@@ -198,10 +231,11 @@ exports.tailorResume = async (req, res) => {
       Rephrase descriptions to emphasize responsibilities, achievements, and skills relevant to this position and field.
       Remove experiences that are not relevant.
       Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "", "duration": "" }].
-      Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
+      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+      Ensure the output is valid JSON.`;
 
     const experienceResult = await model.generateContent(experiencePrompt);
-    const tailoredExperience = JSON.parse(experienceResult.response.text().trim());
+    const tailoredExperience = cleanAndParseResponse(experienceResult.response.text(), 'experience', experience);
 
     // Tailor projects: Highlight relevant projects
     const projectsPrompt = `
@@ -210,10 +244,11 @@ exports.tailorResume = async (req, res) => {
       Highlight projects relevant to this position and field, and remove irrelevant ones.
       Rephrase descriptions to emphasize relevance.
       Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
-      Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
+      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+      Ensure the output is valid JSON.`;
 
     const projectsResult = await model.generateContent(projectsPrompt);
-    const tailoredProjects = JSON.parse(projectsResult.response.text().trim());
+    const tailoredProjects = cleanAndParseResponse(projectsResult.response.text(), 'projects', projects);
 
     // Tailor achievements: Highlight relevant achievements
     const achievementsPrompt = `
@@ -222,10 +257,11 @@ exports.tailorResume = async (req, res) => {
       Highlight achievements relevant to this position and field, and remove irrelevant ones.
       Rephrase descriptions to emphasize relevance.
       Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
-      Do not include markdown formatting, code blocks, or any other text before or after the JSON array.`;
+      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+      Ensure the output is valid JSON.`;
 
     const achievementsResult = await model.generateContent(achievementsPrompt);
-    const tailoredAchievements = JSON.parse(achievementsResult.response.text().trim());
+    const tailoredAchievements = cleanAndParseResponse(achievementsResult.response.text(), 'achievements', achievements);
 
     // Education can remain unchanged, but you can tailor it if needed
     const tailoredEducation = baseContent.education;
