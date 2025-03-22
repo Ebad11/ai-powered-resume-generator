@@ -7,7 +7,7 @@ import './style.css';
 import Robo1 from '../../components/Robo1';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/imgs/logo.jpg';
-import CustomCursor from '../../components/cursor/Cursor';
+
 
 
 const useMousePosition = () => {
@@ -52,7 +52,7 @@ const Landingpage = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/screen');
+    navigate('/login-signup');
     window.scrollTo(0, 0);
   };
 
@@ -72,10 +72,7 @@ const Landingpage = () => {
 
   return (
     <div className="cyber-landing-container">
-              <CustomCursor />
-
       <div className="cyber-grid"></div>
-
       <motion.div className="glitch-container" initial="hidden" animate="visible" variants={textVariants}>
         <h1 className="cyber-title">
           <div className="logo-title-wrapper">
@@ -117,7 +114,7 @@ const Landingpage = () => {
 
       {/* 3D Robo Section */}
       <div className="cyber-center-section">
-        <Canvas style={{ height: '45vh', width: '30%', background: 'transparent' }} camera={{ position: [0, 2, 15], fov: 60 }}>
+        {/* <Canvas style={{ height: '45vh', width: '30%', background: 'transparent' }} camera={{ position: [0, 2, 15], fov: 60 }}>
           <Suspense fallback={null}>
             <ambientLight intensity={0.6} />
             <pointLight position={[10, 10, 10]} intensity={2} color="#00fff2" />
@@ -133,7 +130,7 @@ const Landingpage = () => {
             <Environment preset="city" background={false} />
             <ContactShadows position={[0, -4, 0]} opacity={0.7} scale={15} blur={3} color="#00fff2" />
           </Suspense>
-        </Canvas>
+        </Canvas> */}
       </div>
 
       {/* Features Section */}

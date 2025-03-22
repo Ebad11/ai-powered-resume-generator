@@ -1,0 +1,322 @@
+/* Base styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap');
+
+:root {
+  --primary-color: #0ff;
+  --primary-glow: 0 0 10px #0ff, 0 0 20px #0ff;
+  --secondary-color: #8a2be2;
+  --bg-dark: #001219;
+  --bg-darker: #000910;
+  --input-bg: rgba(0, 30, 40, 0.3);
+  --text-color: #e0e0e0;
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-color);
+}
+
+/* Container styling */
+.auth-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, var(--bg-dark), var(--bg-darker));
+  overflow: hidden;
+}
+
+/* Particle animation */
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  background-color: var(--primary-color);
+  opacity: 0.4;
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--primary-color);
+  pointer-events: none;
+}
+
+/* Grid lines */
+.grid-lines {
+  position: absolute;
+  z-index: 1;
+}
+
+.grid-lines.horizontal {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.05) 25%, rgba(0, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.05) 75%, rgba(0, 255, 255, 0.05) 76%, transparent 77%, transparent);
+  background-size: 50px 50px;
+}
+
+.grid-lines.vertical {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.05) 25%, rgba(0, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.05) 75%, rgba(0, 255, 255, 0.05) 76%, transparent 77%, transparent);
+  background-size: 50px 50px;
+}
+
+/* Auth box styling */
+.auth-box {
+  position: relative;
+  z-index: 10;
+  width: 400px;
+  padding: 40px;
+  background: rgba(0, 18, 25, 0.7);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+  animation: boxGlow 3s infinite alternate;
+}
+
+@keyframes boxGlow {
+  0% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.4), 0 0 60px rgba(138, 43, 226, 0.2);
+  }
+}
+
+/* Logo styling */
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.logo {
+  width: 100px;
+  height:100p;
+  position: relative;
+  margin-bottom: 15px; 
+}
+.logo-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  animation: logoRotate 8s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.logo-image {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+  z-index: 1;
+}
+
+@keyframes logoRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.logo-inner:before {
+  content: "";
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+  background-color: var(--bg-darker);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+.glow-text {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--primary-color);
+  text-shadow: var(--primary-glow);
+  letter-spacing: 2px;
+}
+
+h1.glow-text {
+  font-size: 24px;
+  margin-top: 10px;
+}
+
+/* Form styling */
+.form-container {
+  margin-top: 20px;
+}
+
+.form-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 20px;
+  animation: textPulse 2s infinite alternate;
+}
+
+@keyframes textPulse {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.cyber-input {
+  width: 100%;
+  padding: 10px 5px;
+  font-size: 16px;
+  color: var(--text-color);
+  background-color: var(--input-bg);
+  border: none;
+  border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+  outline: none;
+  font-family: 'Rajdhani', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.cyber-input:focus {
+  border-bottom-color: var(--primary-color);
+  box-shadow: 0 2px 0 0 var(--primary-color);
+}
+
+.input-group label {
+  position: absolute;
+  top: 10px;
+  left: 5px;
+  color: rgba(224, 224, 224, 0.6);
+  pointer-events: none;
+  transition: 0.3s ease;
+}
+
+.cyber-input:focus ~ label,
+.cyber-input:valid ~ label {
+  top: -20px;
+  font-size: 14px;
+  color: var(--primary-color);
+}
+
+.input-highlight {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: var(--primary-color);
+  transition: 0.3s ease;
+}
+
+.cyber-input:focus ~ .input-highlight {
+  width: 100%;
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* Button styling */
+.cyber-button {
+  position: relative;
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.button-content {
+  position: relative;
+  z-index: 1;
+}
+
+.cyber-button:hover {
+  background-color: rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.cyber-button:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+  transition: all 0.6s;
+}
+
+.cyber-button:hover:before {
+  left: 100%;
+}
+
+.button-glitch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  background: linear-gradient(to right, 
+    rgba(0, 255, 255, 0) 0%,
+    rgba(0, 255, 255, 0.8) 50%,
+    rgba(0, 255, 255, 0) 100%);
+  transform: skewX(-45deg) translateX(-150%);
+}
+
+.cyber-button:hover .button-glitch {
+  opacity: 1;
+  transition: transform 0.6s;
+  transform: skewX(-45deg) translateX(150%);
+}
+
+/* Form switch styling */
+.form-switch {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.switch-link {
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.switch-link:hover {
+  text-shadow: 0 0 5px var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .auth-box {
+    width: 90%;
+    padding: 30px 20px;
+  }
+}
