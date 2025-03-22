@@ -18,5 +18,6 @@ const authenticateToken = (req, res, next) => {
 };
 
 router.post('/generate', authenticateToken, resumeController.generateResume);
+router.post('/tailor-resume', authenticateToken, resumeController.tailorResume);
 
 module.exports = router;

@@ -214,16 +214,21 @@ router.get('/me', authenticateToken, async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const needsResumeData = !user.resumeData || !user.resumeData.skills || user.resumeData.skills.length === 0;
+    const hasGeneratedContent = !!user.generatedResumeContent;
 
     res.status(200).json({ 
       user,
-      needsResumeData
+      needsResumeData,
+      hasGeneratedContent,
+      tailoredResumes: user.tailoredResumes.map(tr => ({
+        position: tr.position,
+        field: tr.field
+      }))
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 // Update resume data route
 router.put('/update-resume-data', authenticateToken, async (req, res) => {
   const { skills, experience, education, projects, achievements, keywords } = req.body;

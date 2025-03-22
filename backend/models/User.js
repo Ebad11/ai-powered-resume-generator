@@ -34,7 +34,6 @@ const UserSchema = new mongoose.Schema({
     }],
     keywords: [String]
   },
-  // Add field to store AI-generated content
   generatedResumeContent: {
     skills: [String],
     experience: [{
@@ -56,7 +55,32 @@ const UserSchema = new mongoose.Schema({
       description: String
     }],
     professionalSummary: String
-  }
+  },
+  // Add field to store tailored resume versions
+  tailoredResumes: [{
+    position: String, // e.g., "Software Engineer", "Data Scientist"
+    field: String, // e.g., "Technology", "Healthcare"
+    skills: [String],
+    experience: [{
+      title: String,
+      description: String,
+      duration: String
+    }],
+    education: [{
+      institution: String,
+      degree: String,
+      duration: String
+    }],
+    projects: [{
+      title: String,
+      description: String
+    }],
+    achievements: [{
+      title: String,
+      description: String
+    }],
+    professionalSummary: String
+  }]
 });
 
 module.exports = mongoose.model('User', UserSchema);
