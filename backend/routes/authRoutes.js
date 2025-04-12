@@ -170,18 +170,13 @@ router.post('/login', async (req, res) => {
 
 // Google Auth Routes
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
-
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  passport.authenticate('google', { failureRedirect: '/', session: false }),
   async (req, res) => {
     try {
       const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-      // Check if resumeData is populated
       const needsResumeData = !req.user.resumeData || !req.user.resumeData.skills || req.user.resumeData.skills.length === 0;
-
-      // Redirect to frontend with token and a flag indicating if resume data is needed
-      res.redirect(`http://localhost:3000/dashboard?token=${token}&needsResumeData=${needsResumeData}`);
+      res.redirect(`http://localhost:8080/google-callback?token=${token}&needsResumeData=${needsResumeData}`);
     } catch (error) {
       res.status(500).json({ error: 'Google authentication failed', message: error.message });
     }
@@ -203,7 +198,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: 'Invalid token' });
-    req.user = user; // user contains { id: user._id }
+    req.user = user;
     next();
   });
 };

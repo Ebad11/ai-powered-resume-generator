@@ -79,14 +79,10 @@ exports.generateResume = async (req, res) => {
               .replace(/\n```$/, '');
           }
           cleanedResponse = cleanedResponse.trim();
-
-          console.log(`Cleaned ${sectionName} response:`, cleanedResponse);
-
           try {
             return JSON.parse(cleanedResponse);
           } catch (parseError) {
             console.error(`JSON parse error for ${sectionName}:`, parseError);
-            console.log(`Raw ${sectionName} response:`, responseText);
             return data; // Fallback to original data if parsing fails
           }
         };
@@ -142,8 +138,14 @@ exports.generateResume = async (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename=${name.replace(/\s+/g, '_')}_resume.docx`);
 
+    // res.json({
+    //   document: wordBuffer.toString('base64'),
+    //   fileName: `${name.replace(/\s+/g, '_')}_resume.docx`
+    // });
+    const documentBase64 = wordBuffer.toString('base64');
     res.json({
-      document: wordBuffer.toString('base64'),
+      success: true,
+      document: documentBase64,
       fileName: `${name.replace(/\s+/g, '_')}_resume.docx`
     });
   } catch (error) {
@@ -163,142 +165,168 @@ exports.tailorResume = async (req, res) => {
       return res.status(400).json({ message: 'Please complete your profile by providing resume data.' });
     }
 
-    const { position, field } = req.body;
+    const { position, field, template } = req.body;
 
     if (!position || !field) {
       return res.status(400).json({ message: 'Position and field are required.' });
     }
 
+    if (!template || !docxTemplates[template]) {
+      return res.status(400).json({ error: 'Invalid template selected.' });
+    }
+
     // Check if a tailored resume for this position/field already exists
-    const existingTailoredResume = user.tailoredResumes.find(
+    let existingTailoredResume = user.tailoredResumes.find(
       tr => tr.position === position && tr.field === field
     );
 
-    if (existingTailoredResume) {
-      return res.status(400).json({ message: 'A tailored resume for this position and field already exists.' });
+    // If doesn't exist, create a new tailored resume
+    if (!existingTailoredResume) {
+      // Start with the generated content if it exists, otherwise use the raw resumeData
+      const baseContent = user.generatedResumeContent || user.resumeData;
+      const { name, skills, experience, education, projects, achievements, keywords } = user.resumeData;
+      const baseProfessionalSummary = user.generatedResumeContent?.professionalSummary || '';
+
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+      // Function to clean and parse Gemini API response
+      const cleanAndParseResponse = (responseText, sectionName, originalData) => {
+        let cleanedResponse = responseText.trim();
+
+        // Remove Markdown code blocks if present
+        if (cleanedResponse.startsWith('```json') || cleanedResponse.startsWith('```')) {
+          cleanedResponse = cleanedResponse
+            .replace(/^```json\n/, '')
+            .replace(/^```\n/, '')
+            .replace(/\n```$/, '');
+        }
+
+        // Remove any leading/trailing whitespace
+        cleanedResponse = cleanedResponse.trim();
+        try {
+          return JSON.parse(cleanedResponse);
+        } catch (parseError) {
+          console.error(`JSON parse error for ${sectionName}:`, parseError);
+          return originalData; // Fallback to original data if parsing fails
+        }
+      };
+
+      // Tailor skills: Highlight relevant skills and remove irrelevant ones
+      const skillsPrompt = `
+        Given the following skills: ${JSON.stringify(skills)},
+        tailor the list for a ${position} role in the ${field} field.
+        Highlight skills relevant to this position and field, and remove irrelevant ones.
+        Return ONLY a valid JSON array of the tailored skills (e.g., ["skill1", "skill2"]). 
+        Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array. 
+        Ensure the output is valid JSON.`;
+
+      const skillsResult = await model.generateContent(skillsPrompt);
+      const tailoredSkills = cleanAndParseResponse(skillsResult.response.text(), 'skills', skills);
+
+      // Tailor experience: Rephrase to emphasize relevant experience
+      const experiencePrompt = `
+        Given the following professional experience: ${JSON.stringify(experience)},
+        tailor the experience for a ${position} role in the ${field} field.
+        Rephrase descriptions to emphasize responsibilities, achievements, and skills relevant to this position and field.
+        Remove experiences that are not relevant.
+        Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "", "duration": "" }].
+        Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+        Ensure the output is valid JSON.`;
+
+      const experienceResult = await model.generateContent(experiencePrompt);
+      const tailoredExperience = cleanAndParseResponse(experienceResult.response.text(), 'experience', experience);
+
+      // Tailor projects: Highlight relevant projects
+      const projectsPrompt = `
+        Given the following projects: ${JSON.stringify(projects)},
+        tailor the list for a ${position} role in the ${field} field.
+        Highlight projects relevant to this position and field, and remove irrelevant ones.
+        Rephrase descriptions to emphasize relevance.
+        Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
+        Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+        Ensure the output is valid JSON.`;
+
+      const projectsResult = await model.generateContent(projectsPrompt);
+      const tailoredProjects = cleanAndParseResponse(projectsResult.response.text(), 'projects', projects);
+
+      // Tailor achievements: Highlight relevant achievements
+      const achievementsPrompt = `
+        Given the following achievements: ${JSON.stringify(achievements)},
+        tailor the list for a ${position} role in the ${field} field.
+        Highlight achievements relevant to this position and field, and remove irrelevant ones.
+        Rephrase descriptions to emphasize relevance.
+        Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
+        Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
+        Ensure the output is valid JSON.`;
+
+      const achievementsResult = await model.generateContent(achievementsPrompt);
+      const tailoredAchievements = cleanAndParseResponse(achievementsResult.response.text(), 'achievements', achievements);
+
+      // Education can remain unchanged, but you can tailor it if needed
+      const tailoredEducation = baseContent.education;
+
+      // Tailor the professional summary
+      const summaryPrompt = `
+        Create a professional summary for ${name} tailored for a ${position} role in the ${field} field with the following details:
+        - Skills: ${JSON.stringify(tailoredSkills)}
+        - Professional Experience: ${JSON.stringify(tailoredExperience)}
+        - Education: ${JSON.stringify(tailoredEducation)}
+        - Projects: ${JSON.stringify(tailoredProjects)}
+        - Achievements: ${JSON.stringify(tailoredAchievements)}
+        - Use these keywords in the professional summary: ${Array.isArray(keywords) ? keywords.join(', ') : 'N/A'}
+
+        Guidelines:
+        - Provide the output in a paragraph format in first-person POV.
+        - Return ONLY the paragraph text without any additional formatting.`;
+
+      const summaryResult = await model.generateContent(summaryPrompt);
+      const tailoredProfessionalSummary = summaryResult.response.text().trim();
+
+      // Store the tailored resume in the user's profile
+      const tailoredResume = {
+        position,
+        field,
+        skills: tailoredSkills,
+        experience: tailoredExperience,
+        education: tailoredEducation,
+        projects: tailoredProjects,
+        achievements: tailoredAchievements,
+        professionalSummary: tailoredProfessionalSummary
+      };
+
+      user.tailoredResumes.push(tailoredResume);
+      await user.save();
+      
+      existingTailoredResume = tailoredResume;
     }
 
-    // Start with the generated content if it exists, otherwise use the raw resumeData
-    const baseContent = user.generatedResumeContent || user.resumeData;
-    const { name, skills, experience, education, projects, achievements, keywords } = user.resumeData;
-    const baseProfessionalSummary = user.generatedResumeContent?.professionalSummary || '';
+    // Now generate the DOCX file using the tailored resume
+    const { name, email, phone } = user.resumeData;
+    
+    const createResumeDocument = docxTemplates[template].createResumeDocument;
+    const wordBuffer = await createResumeDocument({
+      name,
+      email,
+      phone,
+      skills: existingTailoredResume.skills,
+      experience: existingTailoredResume.experience,
+      education: existingTailoredResume.education,
+      projects: existingTailoredResume.projects,
+      achievements: existingTailoredResume.achievements,
+      generatedText: existingTailoredResume.professionalSummary
+    });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename=${name.replace(/\s+/g, '_')}_${position}_resume.docx`);
 
-    // Function to clean and parse Gemini API response
-    const cleanAndParseResponse = (responseText, sectionName, originalData) => {
-      let cleanedResponse = responseText.trim();
-
-      // Remove Markdown code blocks if present
-      if (cleanedResponse.startsWith('```json') || cleanedResponse.startsWith('```')) {
-        cleanedResponse = cleanedResponse
-          .replace(/^```json\n/, '')
-          .replace(/^```\n/, '')
-          .replace(/\n```$/, '');
-      }
-
-      // Remove any leading/trailing whitespace
-      cleanedResponse = cleanedResponse.trim();
-
-      // Log the cleaned response for debugging
-      console.log(`Cleaned ${sectionName} response:`, cleanedResponse);
-
-      try {
-        return JSON.parse(cleanedResponse);
-      } catch (parseError) {
-        console.error(`JSON parse error for ${sectionName}:`, parseError);
-        console.log(`Raw ${sectionName} response:`, responseText);
-        return originalData; // Fallback to original data if parsing fails
-      }
-    };
-
-    // Tailor skills: Highlight relevant skills and remove irrelevant ones
-    const skillsPrompt = `
-      Given the following skills: ${JSON.stringify(skills)},
-      tailor the list for a ${position} role in the ${field} field.
-      Highlight skills relevant to this position and field, and remove irrelevant ones.
-      Return ONLY a valid JSON array of the tailored skills (e.g., ["skill1", "skill2"]). 
-      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array. 
-      Ensure the output is valid JSON.`;
-
-    const skillsResult = await model.generateContent(skillsPrompt);
-    const tailoredSkills = cleanAndParseResponse(skillsResult.response.text(), 'skills', skills);
-
-    // Tailor experience: Rephrase to emphasize relevant experience
-    const experiencePrompt = `
-      Given the following professional experience: ${JSON.stringify(experience)},
-      tailor the experience for a ${position} role in the ${field} field.
-      Rephrase descriptions to emphasize responsibilities, achievements, and skills relevant to this position and field.
-      Remove experiences that are not relevant.
-      Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "", "duration": "" }].
-      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
-      Ensure the output is valid JSON.`;
-
-    const experienceResult = await model.generateContent(experiencePrompt);
-    const tailoredExperience = cleanAndParseResponse(experienceResult.response.text(), 'experience', experience);
-
-    // Tailor projects: Highlight relevant projects
-    const projectsPrompt = `
-      Given the following projects: ${JSON.stringify(projects)},
-      tailor the list for a ${position} role in the ${field} field.
-      Highlight projects relevant to this position and field, and remove irrelevant ones.
-      Rephrase descriptions to emphasize relevance.
-      Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
-      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
-      Ensure the output is valid JSON.`;
-
-    const projectsResult = await model.generateContent(projectsPrompt);
-    const tailoredProjects = cleanAndParseResponse(projectsResult.response.text(), 'projects', projects);
-
-    // Tailor achievements: Highlight relevant achievements
-    const achievementsPrompt = `
-      Given the following achievements: ${JSON.stringify(achievements)},
-      tailor the list for a ${position} role in the ${field} field.
-      Highlight achievements relevant to this position and field, and remove irrelevant ones.
-      Rephrase descriptions to emphasize relevance.
-      Return ONLY a valid JSON array with the same structure: [{ "title": "", "description": "" }].
-      Do NOT include markdown formatting, code blocks, or any other text before or after the JSON array.
-      Ensure the output is valid JSON.`;
-
-    const achievementsResult = await model.generateContent(achievementsPrompt);
-    const tailoredAchievements = cleanAndParseResponse(achievementsResult.response.text(), 'achievements', achievements);
-
-    // Education can remain unchanged, but you can tailor it if needed
-    const tailoredEducation = baseContent.education;
-
-    // Tailor the professional summary
-    const summaryPrompt = `
-      Create a professional summary for ${name} tailored for a ${position} role in the ${field} field with the following details:
-      - Skills: ${JSON.stringify(tailoredSkills)}
-      - Professional Experience: ${JSON.stringify(tailoredExperience)}
-      - Education: ${JSON.stringify(tailoredEducation)}
-      - Projects: ${JSON.stringify(tailoredProjects)}
-      - Achievements: ${JSON.stringify(tailoredAchievements)}
-      - Use these keywords in the professional summary: ${Array.isArray(keywords) ? keywords.join(', ') : 'N/A'}
-
-      Guidelines:
-      - Provide the output in a paragraph format in first-person POV.
-      - Return ONLY the paragraph text without any additional formatting.`;
-
-    const summaryResult = await model.generateContent(summaryPrompt);
-    const tailoredProfessionalSummary = summaryResult.response.text().trim();
-
-    // Store the tailored resume in the user's profile
-    const tailoredResume = {
-      position,
-      field,
-      skills: tailoredSkills,
-      experience: tailoredExperience,
-      education: tailoredEducation,
-      projects: tailoredProjects,
-      achievements: tailoredAchievements,
-      professionalSummary: tailoredProfessionalSummary
-    };
-
-    user.tailoredResumes.push(tailoredResume);
-    await user.save();
-
-    res.status(200).json({ message: `Resume tailored for ${position} in ${field} successfully.` });
+    const documentBase64 = wordBuffer.toString('base64');
+    
+    res.json({
+      success: true,
+      document: documentBase64,
+      fileName: `${name.replace(/\s+/g, '_')}_${position}_resume.docx`,
+      message: `Resume tailored for ${position} in ${field} successfully.`
+    });
   } catch (error) {
     console.error('Error tailoring resume:', error);
     res.status(500).json({ error: 'Failed to tailor resume', details: error.message });
